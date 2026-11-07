@@ -1,0 +1,123 @@
+import streamlit as st
+import PyPDF2
+import re
+
+st.set_page_config(
+    page_title="Smart Resume Analyzer",
+    page_icon="📄",
+    layout="wide"
+)
+
+st.title("📄 Smart Resume Analyzer")
+st.write(
+    "Upload your resume and compare it with a job description "
+    "to identify matching and missing skills."
+)
+
+# -----------------------------
+# Skill database
+# -----------------------------
+
+SKILLS = [
+    "python",
+    "java",
+    "c",
+    "c++",
+    "sql",
+    "javascript",
+    "typescript",
+    "html",
+    "css",
+    "react",
+    "node.js",
+    "machine learning",
+    "deep learning",
+    "artificial intelligence",
+    "data science",
+    "data analysis",
+    "pandas",
+    "numpy",
+    "tensorflow",
+    "pytorch",
+    "git",
+    "github",
+    "docker",
+    "aws",
+    "azure",
+    "mongodb",
+    "mysql",
+    "postgresql",
+    "communication",
+    "leadership",
+    "problem solving",
+    "teamwork"
+]
+
+
+# -----------------------------
+# Extract PDF text
+# -----------------------------
+
+def extract_resume_text(uploaded_file):
+
+    reader = PyPDF2.PdfReader(uploaded_file)
+
+    text = ""
+
+    for page in reader.pages:
+        page_text = page.extract_text()
+
+        if page_text:
+            text += page_text + "\n"
+
+    return text
+
+
+# -----------------------------
+# Find skills
+# -----------------------------
+
+def find_skills(text):
+
+    text = text.lower()
+
+    found_skills = []
+
+    for skill in SKILLS:
+
+        pattern = r"\b" + re.escape(skill) + r"\b"
+
+        if re.search(pattern, text):
+            found_skills.append(skill)
+
+    return sorted(set(found_skills))
+
+
+# -----------------------------
+# Calculate match score
+# -----------------------------
+
+def calculate_score(resume_skills, job_skills):
+
+    if not job_skills:
+        return 0
+
+    matching_skills = set(resume_skills).intersection(set(job_skills))
+
+    score = (len(matching_skills) / len(job_skills)) * 100
+
+    return round(score, 2)
+
+
+# -----------------------------
+# Interface
+# -----------------------------
+
+resume_file = st.file_uploader(
+    "Upload your resume (PDF)",
+    type=["pdf"]
+)
+
+job_description = st.text_area(
+    "Paste the Job Description",
+    height=250
